@@ -1,0 +1,31 @@
+[package]
+name = "sig_eval"
+version = "0.1.0"
+authors = ["wip-abramson <wip.abramson@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bbs = "0.4"
+criterion = "0.3"
+ursa = { version = "0.3.5" }
+sha2 = "0.8.0"
+
+[dependencies.amcl_wrapper]
+version = "0.3.5"
+default-features = false
+features = ["bls381"]
+
+
+
+
+[[bench]]
+name="bbs"
+harness=false
+[[bench]]
+name="cl"
+harness=false
+[[bench]]
+name="ed25519"
+harness=false
