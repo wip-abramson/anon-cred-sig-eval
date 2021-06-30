@@ -25,14 +25,13 @@ use criterion::{Criterion, BenchmarkId};
 
 fn key_gen(c: &mut Criterion) {
     let mut group = c.benchmark_group("CL-RSA Key Generation");
-
-    group.sample_size(20);
+    group.measurement_time(3000);
     for atts in vec![1, 2, 5, 10, 20, 50, 100] {
         group.bench_function(BenchmarkId::new("Attributes", atts), move |b| {
             b.iter(|| {
                 let mut credential_schema_builder = Issuer::new_credential_schema_builder().unwrap();
 
-                for x in 0..atts {
+                for x in x..atts {
                     credential_schema_builder.add_attr(&x.to_string()).unwrap();
                 }
 
@@ -448,7 +447,10 @@ fn credential_presentation_attribute_size(c: & mut Criterion) {
 criterion_group!(
     name = bench_cl;
     config = Criterion::default();
-    targets = key_gen, credential_issuance_attribute_size, credential_issuance, credential_presentation, credential_presentation_attribute_size
+    targets = key_gen
+//    , credential_issuance_attribute_size, credential_issuance, credential_presentation, credential_presentation_attribute_size
+
+//    targets = key_gen, credential_issuance_attribute_size, credential_issuance, credential_presentation, credential_presentation_attribute_size
 );
 
 criterion_main!(bench_cl);

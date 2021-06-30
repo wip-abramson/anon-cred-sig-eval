@@ -20,12 +20,12 @@ features = ["bls381"]
 
 
 
-[[bench]]
-name="bbs"
-harness=false
+#[[bench]]
+#name="bbs"
+#harness=false
 [[bench]]
 name="cl"
 harness=false
-[[bench]]
-name="ed25519"
-harness=false
+#[[bench]]
+#name="ed25519"
+#harness=false
