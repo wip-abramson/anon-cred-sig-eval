@@ -20,18 +20,19 @@ use ursa::signatures::{
 use ursa::bls::*;
 use amcl_wrapper::group_elem::GroupElement;
 use sha2::Digest;
+use std::time::Duration;
 
 use criterion::{Criterion, BenchmarkId};
 
 fn key_gen(c: &mut Criterion) {
     let mut group = c.benchmark_group("CL-RSA Key Generation");
-    group.measurement_time(3000);
+    group.measurement_time(Duration::new(3000,0));
     for atts in vec![1, 2, 5, 10, 20, 50, 100] {
         group.bench_function(BenchmarkId::new("Attributes", atts), move |b| {
             b.iter(|| {
                 let mut credential_schema_builder = Issuer::new_credential_schema_builder().unwrap();
 
-                for x in x..atts {
+                for x in 0..atts {
                     credential_schema_builder.add_attr(&x.to_string()).unwrap();
                 }
 
