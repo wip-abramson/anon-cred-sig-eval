@@ -26,22 +26,22 @@ use criterion::{Criterion, BenchmarkId};
 
 fn key_gen(c: &mut Criterion) {
     let mut group = c.benchmark_group("CL-RSA Key Generation");
-    group.measurement_time(Duration::new(3000,0));
     for atts in vec![1, 2, 5, 10, 20, 50, 100] {
+        let mut credential_schema_builder = Issuer::new_credential_schema_builder().unwrap();
+
+        for x in 0..atts {
+            credential_schema_builder.add_attr(&x.to_string()).unwrap();
+        }
+
+
+        let credential_schema = credential_schema_builder.finalize().unwrap();
+
+        let mut non_credential_schema_builder = NonCredentialSchemaBuilder::new().unwrap();
+        non_credential_schema_builder.add_attr("link_secret").unwrap();
+        let non_credential_schema = non_credential_schema_builder.finalize().unwrap();
         group.bench_function(BenchmarkId::new("Attributes", atts), move |b| {
             b.iter(|| {
-                let mut credential_schema_builder = Issuer::new_credential_schema_builder().unwrap();
 
-                for x in 0..atts {
-                    credential_schema_builder.add_attr(&x.to_string()).unwrap();
-                }
-
-
-                let credential_schema = credential_schema_builder.finalize().unwrap();
-
-                let mut non_credential_schema_builder = NonCredentialSchemaBuilder::new().unwrap();
-                non_credential_schema_builder.add_attr("link_secret").unwrap();
-                let non_credential_schema = non_credential_schema_builder.finalize().unwrap();
                 let (cred_pub_key, cred_priv_key, cred_key_correctness_proof) =
                     Issuer::new_credential_def(&credential_schema, &non_credential_schema, false).unwrap();
             })
@@ -129,6 +129,109 @@ fn credential_issuance(c: &mut Criterion) {
         });
     }
 }
+
+
+//fn credential_issuance_revocable(c: &mut Criterion) {
+//    let mut group = c.benchmark_group("CL-RSA Issue Credential");
+//
+//    for atts in vec![1, 2, 5, 10, 20, 50, 100] {
+//        let mut credential_schema_builder = Issuer::new_credential_schema_builder().unwrap();
+//
+//        for x in 0..atts {
+//            credential_schema_builder.add_attr(&x.to_string()).unwrap();
+//        }
+//
+//
+//        let credential_schema = credential_schema_builder.finalize().unwrap();
+//
+//        let mut non_credential_schema_builder = NonCredentialSchemaBuilder::new().unwrap();
+//        non_credential_schema_builder.add_attr("link_secret").unwrap();
+//        let non_credential_schema = non_credential_schema_builder.finalize().unwrap();
+//        let (cred_pub_key, cred_priv_key, cred_key_correctness_proof) =
+//            Issuer::new_credential_def(&credential_schema, &non_credential_schema, true).unwrap();
+//
+//        let (_rev_key_pub, _rev_key_priv, _rev_reg, _rev_tails_generator) = Issuer::new_revocation_registry_def(&_cred_pub_key, 1000, true).unwrap();
+//
+//        let max_cred_num = 1000;
+//        let (_rev_key_pub, rev_key_priv, mut rev_reg, mut rev_tails_generator) = Issuer::new_revocation_registry_def(&cred_pub_key, max_cred_num, false).unwrap();
+//
+//        let simple_tail_accessor = SimpleTailsAccessor::new(&mut rev_tails_generator).unwrap();
+//
+//
+//        let master_secret = Prover::new_master_secret().unwrap();
+//        group.bench_function(BenchmarkId::new("Attributes", atts), move |b| {
+//            b.iter(|| {
+//                let credential_nonce = new_nonce().unwrap();
+//
+//                let mut credential_values_builder = Issuer::new_credential_values_builder().unwrap();
+//
+//                let value = "0".repeat(32);
+//                let attribute_value: BigNumber = BigNumber::from_bytes(sha2::Sha256::digest(value.as_bytes()).to_vec().as_slice()).unwrap();
+//
+//                credential_values_builder.add_value_hidden("link_secret", &master_secret.value().unwrap()).unwrap();
+//
+//                for x in 0..atts {
+//                    credential_values_builder.add_value_known(&x.to_string(), &attribute_value).unwrap();
+//
+//                }
+//
+//                let cred_values = credential_values_builder.finalize().unwrap();
+//
+//                let (blinded_credential_secrets,
+//                    credential_secrets_blinding_factors,
+//                    blinded_credential_secrets_correctness_proof,
+//                ) = Prover::blind_credential_secrets(
+//                    &cred_pub_key,
+//                    &cred_key_correctness_proof,
+//                    &cred_values,
+//                    &credential_nonce,
+//                ).unwrap();
+//
+//                let cred_issuance_nonce = new_nonce().unwrap();
+//
+//                let (mut cred_signature, signature_correctness_proof) = Issuer::sign_credential(
+//                    "CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW",
+//                    &blinded_credential_secrets,
+//                    &blinded_credential_secrets_correctness_proof,
+//                    &credential_nonce,
+//                    &cred_issuance_nonce,
+//                    &cred_values,
+//                    &cred_pub_key,
+//                    &cred_priv_key,
+//                ).unwrap();
+//
+//                 let (_cred_signature, _signature_correctness_proof, _rev_reg_delta) =
+//                     Issuer::sign_credential_with_revoc("CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW",
+//                                                    &blinded_credential_secrets,
+//                                                    &blinded_credential_secrets_correctness_proof,
+//                                                    &credential_nonce,
+//                                                    &cred_issuance_nonce,
+//                                                    &cred_values,
+//                                                    &cred_pub_key,
+//                                                    &cred_priv_key,
+//                                                    1,
+//                                                        max_cred_num,
+//                                                    false,
+//                                                    &mut rev_reg,
+//                                                    &rev_key_priv,
+//                                                    &simple_tail_accessor).unwrap();
+//
+//
+//                Prover::process_credential_signature(
+//                    &mut cred_signature,
+//                    &cred_values,
+//                    &signature_correctness_proof,
+//                    &credential_secrets_blinding_factors,
+//                    &cred_pub_key,
+//                    &cred_issuance_nonce,
+//                    None,
+//                    None,
+//                    None,
+//                ).unwrap();
+//            })
+//        });
+//    }
+//}
 
 
 
