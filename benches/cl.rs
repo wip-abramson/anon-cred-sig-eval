@@ -551,7 +551,7 @@ fn credential_presentation_attribute_size(c: & mut Criterion) {
 criterion_group!(
     name = bench_cl;
     config = Criterion::default();
-    targets = key_gen
+    targets = credential_issuance
 //    , credential_issuance_attribute_size, credential_issuance, credential_presentation, credential_presentation_attribute_size
 
 //    targets = key_gen, credential_issuance_attribute_size, credential_issuance, credential_presentation, credential_presentation_attribute_size
